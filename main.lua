@@ -1,4 +1,4 @@
---PR3 Gaming Console v1.5ALPHA
+--Console v1.5ALPHA
 player.fov = 0.115
 player.speed = -49.9
 
