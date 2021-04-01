@@ -11,3 +11,6 @@ The console is the dark grey block just left and up from the top left of the col
 
 The console is currently V1.4.
 
+Credit to gasterskyRAW for creating the original gaming console with 22 colors. This code is adapted from his for the 512 color palette.
+
+
