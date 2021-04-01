@@ -7,6 +7,7 @@ As of right now, there is no known way to speed this up.
 
 This code only works within Platform Racing 3. It requires the color palette set up next to it, and it is built for the level it is in.
 ![Display](https://i.imgur.com/JyNL7mV.png)
+The console is the dark grey block just left and up from the top left of the color palette.
 
 The console is currently V1.4.
 
