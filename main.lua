@@ -1,4 +1,3 @@
--- Console V1.4
 player.fov = 0.115
 player.speed = -49.9
 
@@ -18,6 +17,9 @@ if tolua(player.getmetadata("started", 0)) == 0 then
  if r_errexit == nil then
   r_errexit = false
  end
+ if r_diag == nil then
+  r_diag = false
+ end
  
  local i = 0
  local j = 0
@@ -25,6 +27,8 @@ if tolua(player.getmetadata("started", 0)) == 0 then
  local b = block
  local bgb = tolua(b.getblock)
  local gb = {}
+ local bmoved = 0
+ local bdrawn = 0
 
  local x,y
  for hcc = 0, 511 do
@@ -171,6 +175,7 @@ if tolua(player.getmetadata("started", 0)) == 0 then
         pixcol[sn_j] = snpcolumn[sn_j]
       end
     end
+    bdrawn = bdrawn + 3195
   end
  
   function hc_takesnapshot(x1,y1,x2,y2)
@@ -250,6 +255,7 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   x = math.max(0, math.min(70, x))
   y = math.max(0, math.min(44, y))
   r_pixels[x+1][y+1] = color
+  bdrawn = bdrawn + 1
  end
  function hc_draw_square(x1, y1, x2, y2, color)
   x1 = math.max(0, x1)
@@ -265,6 +271,7 @@ if tolua(player.getmetadata("started", 0)) == 0 then
    end
    li = li + 1
   end
+  bdrawn = bdrawn + ((x2-x1 + 1)*(y2-y1 + 1))
  end
  function hc_draw_square_alpha(x1, y1, x2, y2, color, alpha, xoff, yoff)
   x1 = math.max(0, x1)
@@ -278,6 +285,7 @@ if tolua(player.getmetadata("started", 0)) == 0 then
    while lj <= y2 do
     r_pixels[math.floor(li+1.5)][math.floor(lj+1)] = color
     lj = lj + 1/alpha
+    bdrawn = bdrawn + 1
    end
    li = li + math.max(1, 0.5/alpha)
    la = la + 1
@@ -319,15 +327,42 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   end
  end
 
+ -- diagnostic functions
+  local diagtable = {}
+  --[[
+  diagnostic table format
+  each frame is its own table.
+  diagtable[*].frame : number, r_frames value on that frame.
+  diagtable[*].displayframe : boolean, true if the display updated on that frame.
+  diagtable[*].blocksmoved : number, blocks moved on given frame. 0 on non-display frames.
+  diagtable[*].blocksdrawn : number, pixel updates on given frame.
+  diagtable[*].initialframe : boolean, true if a program initialized on this frame.
+  ]]--
+ function console_getdiag()
+   return diagtable
+ end
+ function console_rec_diag()
+   local q = #diagtable + 1
+   diagtable[q] = {
+     frame = r_frames,
+     displayframe = (math.floor(r_frames/r_fpr) == r_frames/r_fpr),
+     blocksmoved = bmoved,
+     blocksdrawn = bdrawn,
+     initialframe = false
+   }
+ end
+
+ -- finalize loading
 
  function program_refresh()
  end
 
  r_program_on = 0
  r_program = false
- --local beta_printer = string.upper("beta")
- player.chat("console v1.4 successfully initialized!",0x00ff00)
+ local beta_printer = string.upper("alpha") -- PR3R makes everything lowercase after exiting for some reason.
+ player.chat("console v1.5".. beta_printer .." successfully initialized!",0x00ff00)
 end
+
 
 r_frames = r_frames + 1
 control_horizontal = tolua(player.xvelocity)
