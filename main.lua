@@ -1,4 +1,4 @@
---Console v1.5ALPHA
+--Console v1.5BETA
 player.fov = 0.115
 player.speed = -49.9
 
@@ -21,6 +21,7 @@ if tolua(player.getmetadata("started", 0)) == 0 then
  if r_diag == nil then
   r_diag = false
  end
+ initflag = false
  
  local i = 0
  local j = 0
@@ -304,12 +305,14 @@ if tolua(player.getmetadata("started", 0)) == 0 then
      li = li + 1
      lj = lj + yrat
     end
+    bdrawn = bdrawn + (x2-x1) + 1
    elseif x2-x1 < 0 then
     while li >= x2 do
      r_pixels[math.max(1,math.min(71,math.floor(li+1.5)))][math.max(1,math.min(45,math.floor(lj+1.5)))] = color
      li = li - 1
      lj = lj + yrat
     end
+    bdrawn = bdrawn + (x1-x2) + 1
    end
   else
    if y2-y1 > 0 then
@@ -318,12 +321,14 @@ if tolua(player.getmetadata("started", 0)) == 0 then
      li = li + xrat
      lj = lj + 1
     end
+    bdrawn = bdrawn + (y2-y1) + 1
    elseif y2-y1 < 0 then
     while lj >= y2 do
      r_pixels[math.max(1,math.min(71,math.floor(li+1.5)))][math.max(1,math.min(45,math.floor(lj+1.5)))] = color
      li = li + xrat
      lj = lj - 1
     end
+    bdrawn = bdrawn + (y1-y2) + 1
    end
   end
  end
@@ -336,8 +341,11 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   diagtable[*].frame : number, r_frames value on that frame.
   diagtable[*].displayframe : boolean, true if the display updated on that frame.
   diagtable[*].blocksmoved : number, blocks moved on given frame. 0 on non-display frames.
-  diagtable[*].blocksdrawn : number, pixel updates on given frame.
+  diagtable[*].blocksdrawn : number, pixel updates on given frame. (specifically, r_pixels accesses)
   diagtable[*].initialframe : boolean, true if a program initialized on this frame.
+  diagtable[*].errframe : boolean, true if there was an error on this frame.
+  diagtable[*].hinput : number, horizontal input on given frame.
+  diagtable[*].vinput : number, vertical input on given frame. (0 for none, 1 for up)
   ]]--
  function console_getdiag()
    return diagtable
@@ -349,7 +357,10 @@ if tolua(player.getmetadata("started", 0)) == 0 then
      displayframe = (math.floor(r_frames/r_fpr) == r_frames/r_fpr),
      blocksmoved = bmoved,
      blocksdrawn = bdrawn,
-     initialframe = false
+     initialframe = initflag,
+     errframe = not prgmpass,
+     hinput = control_horizontal,
+     vinput = control_up
    }
  end
 
@@ -360,9 +371,15 @@ if tolua(player.getmetadata("started", 0)) == 0 then
 
  r_program_on = 0
  r_program = false
- local beta_printer = string.upper("alpha") -- PR3R makes everything lowercase after exiting for some reason.
+ local beta_printer = string.upper("beta") -- PR3 makes everything lowercase after exiting for some reason.
  player.chat("console v1.5".. beta_printer .." successfully initialized!",0x00ff00)
 end
+
+if r_diag then
+  console_rec_diag()
+end
+bmoved = 0
+bdrawn = 0
 
 
 r_frames = r_frames + 1
@@ -372,7 +389,9 @@ if math.floor(r_frames/r_fpr) == r_frames/r_fpr then
  screen_refresh()
 end
 if r_program_on == 1 then
+  initflag = false
   if r_program == false then
+    initflag = true
     r_program = true
     hc_draw_square(0, 0, 70, 44, 0)
   end
