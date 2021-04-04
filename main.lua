@@ -254,7 +254,7 @@ if tolua(player.getmetadata("started", 0)) == 0 then
 
  --draw functions
  function hc_draw_pixel(x, y, color)
-  if x < 0 or x > 70 or y < 0 or y > 44 then
+  if x < 0 or x > 70 or y < 0 or y > 44 or x ~= x or y ~= y then
    return
   end
   r_pixels[x+1][y+1] = color
