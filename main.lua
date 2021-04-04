@@ -1,4 +1,4 @@
--- Console V1.4
+-- Console v1.4.1
 player.fov = 0.115
 player.speed = -49.9
 
@@ -222,13 +222,20 @@ if tolua(player.getmetadata("started", 0)) == 0 then
  control_up = 0
 
  function screen_refresh()
-  i = 1
+  local i = 1
+  local j = 1
+  local rpx = r_pixels
+  local rpxo = r_pixels_old
+  local rp
+  local rpo
   while i <= 71 do
    j = 1
+   rp = rpx[i]
+   rpo = rpxo[i]
    while j <= 45 do
-    if r_pixels[i][j] ~= r_pixels_old[i][j] then
-     display_pixel(i-36, j-49, r_pixels[i][j]+1)
-     r_pixels_old[i][j] = r_pixels[i][j]
+    if rp[j] ~= rpo[j] then
+     display_pixel(i-36, j-49, rp[j]+1)
+     rpxo[i][j] = rpx[i][j]
     end
     j = j + 1
    end
@@ -247,8 +254,9 @@ if tolua(player.getmetadata("started", 0)) == 0 then
 
  --draw functions
  function hc_draw_pixel(x, y, color)
-  x = math.max(0, math.min(70, x))
-  y = math.max(0, math.min(44, y))
+  if x < 0 or x > 70 or y < 0 or y > 44 then
+   return
+  end
   r_pixels[x+1][y+1] = color
  end
  function hc_draw_square(x1, y1, x2, y2, color)
@@ -256,11 +264,15 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   y1 = math.max(0, y1)
   x2 = math.min(70, x2)
   y2 = math.min(44, y2)
-  li = x1
+  local li = x1
+  local lj = y1
+  local rpx = r_pixels
+  local rp
   while li <= x2 do
    lj = y1
+   rp = rpx[li+1]
    while lj <= y2 do
-    r_pixels[li+1][lj+1] = color
+    rp[lj+1] = color
     lj = lj + 1
    end
    li = li + 1
@@ -273,10 +285,13 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   y2 = math.min(44, y2)
   local la = 0
   li = x1 + xoff
+  local rpx = r_pixels
+  local rp
   while li <= x2 do
    lj = y1 + (la - math.floor(la/2) * 2)/alpha/2 + yoff
+   rp = rpx[math.floor(li+1.5)]
    while lj <= y2 do
-    r_pixels[math.floor(li+1.5)][math.floor(lj+1)] = color
+    rp[math.floor(lj+1)] = color
     lj = lj + 1/alpha
    end
    li = li + math.max(1, 0.5/alpha)
@@ -326,7 +341,7 @@ if tolua(player.getmetadata("started", 0)) == 0 then
  r_program_on = 0
  r_program = false
  --local beta_printer = string.upper("beta")
- player.chat("console v1.4 successfully initialized!",0x00ff00)
+ player.chat("console v1.4.1 successfully initialized!",0x00ff00)
 end
 
 r_frames = r_frames + 1
