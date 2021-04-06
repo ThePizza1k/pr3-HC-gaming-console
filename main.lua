@@ -229,13 +229,21 @@ if tolua(player.getmetadata("started", 0)) == 0 then
  control_up = 0
 
  function screen_refresh()
-  i = 1
+  local i = 1
+  local j = 1
+  local rpx = r_pixels
+  local rpxo = r_pixels_old
+  local rp
+  local rpo
   while i <= 71 do
    j = 1
+   rp = rpx[i]
+   rpo = rpxo[i]
    while j <= 45 do
-    if r_pixels[i][j] ~= r_pixels_old[i][j] then
-     display_pixel(i-36, j-49, r_pixels[i][j]+1)
-     r_pixels_old[i][j] = r_pixels[i][j]
+    if rp[j] ~= rpo[j] then
+     display_pixel(i-36, j-49, rp[j]+1)
+     rpxo[i][j] = rpx[i][j]
+     bmoved = bmoved + 1
     end
     j = j + 1
    end
@@ -254,8 +262,9 @@ if tolua(player.getmetadata("started", 0)) == 0 then
 
  --draw functions
  function hc_draw_pixel(x, y, color)
-  x = math.max(0, math.min(70, x))
-  y = math.max(0, math.min(44, y))
+  if x < 0 or x > 70 or y < 0 or y > 44 or x ~= x or y ~= y then
+   return
+  end
   r_pixels[x+1][y+1] = color
   bdrawn = bdrawn + 1
  end
@@ -264,11 +273,15 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   y1 = math.max(0, y1)
   x2 = math.min(70, x2)
   y2 = math.min(44, y2)
-  li = x1
+  local li = x1
+  local lj = y1
+  local rpx = r_pixels
+  local rp
   while li <= x2 do
    lj = y1
+   rp = rpx[li+1]
    while lj <= y2 do
-    r_pixels[li+1][lj+1] = color
+    rp[lj+1] = color
     lj = lj + 1
    end
    li = li + 1
@@ -282,10 +295,13 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   y2 = math.min(44, y2)
   local la = 0
   li = x1 + xoff
+  local rpx = r_pixels
+  local rp
   while li <= x2 do
    lj = y1 + (la - math.floor(la/2) * 2)/alpha/2 + yoff
+   rp = rpx[math.floor(li+1.5)]
    while lj <= y2 do
-    r_pixels[math.floor(li+1.5)][math.floor(lj+1)] = color
+    rp[math.floor(lj+1)] = color
     lj = lj + 1/alpha
     bdrawn = bdrawn + 1
    end
@@ -333,8 +349,15 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   end
  end
 
+ -- get raw r_pixels
+
+ function console_get_rpixels()
+   return r_pixels
+ end
+
  -- diagnostic functions
   local diagtable = {}
+  local functtable = {}
   --[[
   diagnostic table format
   each frame is its own table.
@@ -346,12 +369,30 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   diagtable[*].errframe : boolean, true if there was an error on this frame.
   diagtable[*].hinput : number, horizontal input on given frame.
   diagtable[*].vinput : number, vertical input on given frame. (0 for none, 1 for up)
+  diagtable[*].functrec : table, contains entries for functions that are being recorded.
   ]]--
  function console_getdiag()
    return diagtable
  end
+ function console_functdiag(funct, name) -- give function and name
+   if functtable[name] ~= nil then error("fuck you, that name is already in use.",2) end
+   functtable[name] = 0 -- records function and info
+   return function(...)
+     functtable[name] = functtable[name] + 1
+     return funct(...)
+   end
+ end
+ function console_resetfunctinfo()
+   for i in pairs(functtable) do
+     functtable[i] = 0
+   end
+ end
  function console_rec_diag()
    local q = #diagtable + 1
+   local m = {}
+   for i in pairs(functtable) do
+     m[i] = functtable[i][2]
+   end
    diagtable[q] = {
      frame = r_frames,
      displayframe = (math.floor(r_frames/r_fpr) == r_frames/r_fpr),
@@ -360,7 +401,8 @@ if tolua(player.getmetadata("started", 0)) == 0 then
      initialframe = initflag,
      errframe = not prgmpass,
      hinput = control_horizontal,
-     vinput = control_up
+     vinput = control_up,
+     functrec = m
    }
  end
 
@@ -378,6 +420,7 @@ end
 if r_diag then
   console_rec_diag()
 end
+console_resetfunctinfo()
 bmoved = 0
 bdrawn = 0
 
