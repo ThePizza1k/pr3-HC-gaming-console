@@ -354,7 +354,7 @@ if tolua(player.getmetadata("started", 0)) == 0 then
  function console_get_rpixels()
    return r_pixels
  end
-
+
  -- diagnostic functions
   local diagtable = {}
   local functtable = {}
