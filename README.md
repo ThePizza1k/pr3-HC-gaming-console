@@ -9,7 +9,7 @@ This code only works within Platform Racing 3. It requires the color palette set
 ![Display](https://i.imgur.com/JyNL7mV.png)
 The console is the dark grey block just left and up from the top left of the color palette.
 
-The console is currently V1.5BETA. The code should work, but it might not.
+The console is currently V1.5.
 
 Credit to gasterskyRAW for creating the original gaming console with 22 colors. This code is adapted from his for the 512 color palette.
 
