@@ -387,8 +387,8 @@ if tolua(player.getmetadata("started", 0)) == 0 then
 
  r_program_on = 0
  r_program = false
- local beta_printer = string.upper("beta")
- player.chat("console v1.5".. beta_printer .." successfully initialized!",0x00ff00)
+ -- local beta_printer = string.upper("beta")
+ player.chat("console v1.5 successfully initialized!",0x00ff00)
 end
 
 r_frames = r_frames + 1
