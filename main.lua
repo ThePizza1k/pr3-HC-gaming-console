@@ -1,4 +1,4 @@
--- Console v1.4.1
+-- Console v1.5
 player.fov = 0.115
 player.speed = -49.9
 
@@ -334,14 +334,61 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   end
  end
 
+ function console_get_rpixels() -- get r_pixels array
+   return r_pixels
+ end
+
+  --[[
+  0 - 0,0,0 [0] (black)
+  1 - 3,0,0 [3] (dark red)
+  2 - 0,3,0 [24] (dark green)
+  3 - 0,0,3 [192] (dark blue)
+  4 - 3,3,0 [27] (dark yellow)
+  5 - 0,3,3 [216] (dark cyan)
+  6 - 3,0,3 [195] (dark pink)
+  7 - 3,3,3 [219] (dark gray)
+  8 - 5,5,5 [365] (gray)
+  9 - 7,0,0 [7] (red)
+  10 - 0,7,0 [56] (green)
+  11 - 0,0,7 [448] (blue)
+  12 - 7,7,0 [63] (yellow)
+  13 - 0,7,7 [504] (cyan)
+  14 - 7,0,7 [455] (pink)
+  15 - 7,7,7 [511] (white)
+  16 - 7,3,0 [31] (orange)
+  17 - 3,7,0 [59] (lime)
+  18 - 0,7,3 [248] (teal)
+  19 - 0,3,7 [472] (light blue)
+  20 - 3,0,7 [451] (purple)
+  21 - 7,0,3 [199] (hot pink)
+  ]]--
+
+  local lchc_reftable = {0,3,24,192,27,216,195,219,365,7,56,448,63,504,455,511,31,59,248,472,451,199}
+
+  function draw_pixel(x,y,color)
+    hc_draw_pixel(x,y,lchc_reftable[color+1])
+  end
+
+  function draw_square(x1,y1,x2,y2,color)
+    hc_draw_square(x1,y1,x2,y2,lchc_reftable[color+1])
+  end
+
+  function draw_line(x1,y1,x2,y2,color)
+    hc_draw_line(x1,y1,x2,y2,lchc_reftable[color+1])
+  end
+
+  function draw_text(string,x,y,color)
+    hc_draw_text(string,x,y,lchc_reftable[color+1])
+  end
+
 
  function program_refresh()
  end
 
  r_program_on = 0
  r_program = false
- --local beta_printer = string.upper("beta")
- player.chat("console v1.4.1 successfully initialized!",0x00ff00)
+ local beta_printer = string.upper("beta")
+ player.chat("console v1.5".. beta_printer .." successfully initialized!",0x00ff00)
 end
 
 r_frames = r_frames + 1
