@@ -13,4 +13,4 @@ The console is currently V1.5.
 
 Credit to gasterskyRAW for creating the original gaming console with 22 colors. This code is adapted from his for the 512 color palette.
 
-
+Note: I have stopped working on this. The gaming console is pretty much complete, I don't really know what else is necessary.
