@@ -1,4 +1,4 @@
--- console v1.5.1
+-- console v1.5.2
 player.fov = 0.115
 player.speed = -49.9
 
@@ -213,10 +213,10 @@ if tolua(player.getmetadata("started", 0)) == 0 then
  r_fpr = settings_fpr
 
  do
-  local tbins = table.insert
 
   function display_pixel(xi, yi, color)
-    tbins(colorblocks[color],{x = xi - gbp[color+1][1],y = yi - gbp[color+1][2]})
+    local cbc = colorblocks[color]
+    cbc[#cbc + 1] = {x = xi - gbp[color+1][1],y = yi - gbp[color+1][2]}
   end
 
  end
@@ -402,12 +402,23 @@ if tolua(player.getmetadata("started", 0)) == 0 then
 
  r_program_on = 0
  r_program = false
- -- local beta_printer = string.upper("beta")
- player.chat("console v1.5.1 successfully initialized!",0x00ff00)
+ player.chat("console v1.5.2 successfully initialized!",0x00ff00)
 end
 
 r_frames = r_frames + 1
-control_horizontal = tolua(player.xvelocity)
+control_horizontal = 0
+if tolua(player.rightpressed) then
+  control_horizontal = 1
+elseif tolua(player.leftpressed) then
+  control_horizontal = -1
+end
+control_up = 0
+if tolua(player.uppressed) then
+  control_up = 1
+elseif tolua(player.downpressed) then
+  control_up = -1
+end
+
 r_fpr = settings_fpr
 if math.floor(r_frames/r_fpr) == r_frames/r_fpr then
   screen_refresh()
