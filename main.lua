@@ -1,4 +1,4 @@
--- console v1.5.2
+-- console v1.6
 player.fov = 0.115
 player.speed = -49.9
 
@@ -313,21 +313,28 @@ if tolua(player.getmetadata("started", 0)) == 0 then
    la = la + 1
   end
  end
+
+do
+ local abs = math.abs
+ local min = math.min
+ local max = math.max
+ local floor = math.floor
+
  function hc_draw_line(x1, y1, x2, y2, color)
   li = x1
   lj = y1
-  local xrat = (x2-x1) / math.abs(y2-y1)
-  local yrat = (y2-y1) / math.abs(x2-x1)
-  if math.abs(xrat) >= math.abs(yrat) then
+  local xrat = (x2-x1) / abs(y2-y1)
+  local yrat = (y2-y1) / abs(x2-x1)
+  if abs(xrat) >= abs(yrat) then
    if x2-x1 > 0 then
     while li <= x2 do
-     r_pixels[math.max(1,math.min(71,math.floor(li+1.5)))][math.max(1,math.min(45,math.floor(lj+1.5)))] = color
+     r_pixels[max(1,min(71,floor(li+1.5)))][max(1,min(45,floor(lj+1.5)))] = color
      li = li + 1
      lj = lj + yrat
     end
    elseif x2-x1 < 0 then
     while li >= x2 do
-     r_pixels[math.max(1,math.min(71,math.floor(li+1.5)))][math.max(1,math.min(45,math.floor(lj+1.5)))] = color
+     r_pixels[max(1,min(71,floor(li+1.5)))][max(1,min(45,floor(lj+1.5)))] = color
      li = li - 1
      lj = lj + yrat
     end
@@ -335,19 +342,20 @@ if tolua(player.getmetadata("started", 0)) == 0 then
   else
    if y2-y1 > 0 then
     while lj <= y2 do
-     r_pixels[math.max(1,math.min(71,math.floor(li+1.5)))][math.max(1,math.min(45,math.floor(lj+1.5)))] = color
+     r_pixels[max(1,min(71,floor(li+1.5)))][max(1,min(45,floor(lj+1.5)))] = color
      li = li + xrat
      lj = lj + 1
     end
    elseif y2-y1 < 0 then
     while lj >= y2 do
-     r_pixels[math.max(1,math.min(71,math.floor(li+1.5)))][math.max(1,math.min(45,math.floor(lj+1.5)))] = color
+     r_pixels[max(1,min(71,floor(li+1.5)))][max(1,min(45,floor(lj+1.5)))] = color
      li = li + xrat
      lj = lj - 1
     end
    end
   end
  end
+end
 
  function console_get_rpixels() -- get r_pixels array
    return r_pixels
@@ -396,13 +404,164 @@ if tolua(player.getmetadata("started", 0)) == 0 then
     hc_draw_text(string,x,y,lchc_reftable[color+1])
   end
 
+  --canvas
+
+  canvas = {}
+
+  canvas.mt = {}
+
+  canvas.f = {}
+
+  function canvas.f.draw_pixel(self,x,y,c)
+    if not self[x+1] or y < 0 or y > self.y or x ~= x or y ~= y then
+      return
+    end
+    self[x+1][y+1] = c
+  end
+
+  function canvas.f.draw_square(self,x1, y1, x2, y2, color)
+    x1 = math.max(0, x1)
+    y1 = math.max(0, y1)
+    x2 = math.min(self.x, x2)
+    y2 = math.min(self.y, y2)
+    local li = x1
+    local lj = y1
+    local rpx = self
+    local rp
+    while li <= x2 do
+      lj = y1
+      rp = rpx[li+1]
+      while lj <= y2 do
+        rp[lj+1] = color
+        lj = lj + 1
+      end
+      li = li + 1
+    end
+  end
+
+  do
+    local max = math.max
+    local min = math.min
+    local floor = math.floor
+    local abs = math.abs
+    function canvas.f.draw_line(self, x1, y1, x2, y2, color)
+      local xs = self.x
+      local ys = self.y
+      li = x1+0.5
+      lj = y1+0.5
+      local xrat = (x2-x1) / abs(y2-y1)
+      local yrat = (y2-y1) / abs(x2-x1)
+      if abs(xrat) >= abs(yrat) then
+        if x2-x1 > 0 then
+          while li <= x2 do
+            self[max(1,min(xs,floor(li+1.5)))][max(1,min(ys,floor(lj+1.5)))] = color
+            li = li + 1
+            lj = lj + yrat
+          end
+        elseif x2-x1 < 0 then
+          while li >= x2 do
+            self[max(1,min(xs,floor(li+1.5)))][max(1,min(ys,floor(lj+1.5)))] = color
+            li = li - 1
+            lj = lj + yrat
+          end
+        end
+      else
+        if y2-y1 > 0 then
+          while lj <= y2 do
+            self[max(1,min(xs,floor(li+1.5)))][max(1,min(ys,floor(lj+1.5)))] = color
+            li = li + xrat
+            lj = lj + 1
+          end
+        elseif y2-y1 < 0 then
+          while lj >= y2 do
+            self[max(1,min(xs,floor(li+1.5)))][max(1,min(ys,floor(lj+1.5)))] = color
+            li = li + xrat
+            lj = lj - 1
+          end
+        end
+      end
+    end
+  end
+
+  function canvas.f.draw_to_screen(self,x,y)
+    local xmax = math.min(71,x+self.x)
+    local ymax = math.min(45,y+self.y)
+    local xmin = 0
+    local ymin = 0
+    if x < 0 then
+      xmin = -x
+    end
+    if y < 0 then
+      ymin = -y
+    end
+    if self.t then
+      for i=xmin,self.x do
+        local column = self[i+1]
+        local xaft = x+i+1 -- final x
+        if xaft > 71 then return end
+        for j=ymin,self.y do
+          local yaft = y+j+1
+          local c = column[j+1]
+          if c ~= -1 then r_pixels[xaft][yaft] = c end
+        end
+      end
+    else
+      for i=xmin,self.x do
+        local column = self[i+1]
+        local xaft = x+i+1 -- final x
+        if xaft > 71 then return end
+        for j=ymin,self.y do
+          local yaft = y+j+1
+          r_pixels[xaft][yaft] = column[j+1]
+        end
+      end
+    end
+  end
+
+  canvas.mt.__index = function(table,key)
+    return canvas.f[key]
+  end
+
+  function canvas.new(sizex,sizey,defcol,haveTransparency)
+    local defcol = defcol or 0
+    local haveTransparency = haveTransparency or false
+    local newCan = {x = sizex-1, y = sizey-1, t = haveTransparency}
+    for i=1,sizex,1 do
+      local col = {}
+      newCan[i] = col
+      for j=1,sizey,1 do
+        col[j] = defcol
+      end
+    end
+    return setmetatable(newCan,canvas.mt)
+  end
+
+  function canvas.newFunct(f,name) -- For libraries
+    if canvas.f[name] then player.chat("WARNING! Function conflict with name '".. name .."'. Assignment not given.",0xff0000)
+    else
+    canvas.f[name] = f
+    end
+  end
+
+  --[[ Example canvas function
+
+   local z = function(self,...) -- here, 'self' is the canvas. you can access the canvas with [x][y]
+     self[x][y] = z
+   end
+
+   canvas.newFunct(z,"Funny")
+
+  ]]--
+
+  --end canvas
+
 
  function program_refresh()
  end
 
  r_program_on = 0
  r_program = false
- player.chat("console v1.5.2 successfully initialized!",0x00ff00)
+ player.chat("console v1.6 successfully initialized!",0x00ff00)
 end
 
 r_frames = r_frames + 1
@@ -417,6 +576,10 @@ if tolua(player.uppressed) then
   control_up = 1
 elseif tolua(player.downpressed) then
   control_up = -1
+end
+
+if tolua(player.keypressed(27)) then -- if esc pressed
+  player_exit()
 end
 
 r_fpr = settings_fpr
